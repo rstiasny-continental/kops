@@ -29,8 +29,14 @@ type MockEC2 struct {
 
 	Images []*ec2.Image
 
+	securityGroupNumber int
+	SecurityGroups      []*ec2.SecurityGroup
+
 	subnetNumber int
 	Subnets      []*ec2.Subnet
+
+	volumeNumber int
+	Volumes      []*ec2.Volume
 
 	Tags []*ec2.TagDescription
 

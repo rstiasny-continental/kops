@@ -21,14 +21,18 @@ import (
 	"fmt"
 	"github.com/golang/glog"
 	kops "k8s.io/kops/pkg/apis/kops"
+	"k8s.io/kops/pkg/apis/kops/v1alpha1"
 	"k8s.io/kops/util/pkg/vfs"
 	"k8s.io/kubernetes/pkg/api"
 	"k8s.io/kubernetes/pkg/api/unversioned"
 	"k8s.io/kubernetes/pkg/runtime"
 	"os"
 	"reflect"
+	"sort"
 	"time"
 )
+
+var StoreVersion = v1alpha1.SchemeGroupVersion
 
 type commonVFS struct {
 	kind               string
@@ -196,6 +200,10 @@ func (c *commonVFS) listNames() ([]string, error) {
 	if err != nil {
 		return nil, fmt.Errorf("error listing %s in state store: %v", c.kind, err)
 	}
+
+	// Seems to be an assumption in k8s APIs that items are always returned sorted
+	sort.Strings(keys)
+
 	return keys, nil
 }
 
