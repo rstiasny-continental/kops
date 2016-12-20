@@ -198,7 +198,7 @@ gofmt:
 	gofmt -w -s cmd/
 	gofmt -w -s examples/
 	gofmt -w -s federation/
-	gofmt -w -s pkg/
+	gofmt -w -s nodeup/
 	gofmt -w -s util/
 	gofmt -w -s upup/pkg/
 	gofmt -w -s pkg/
@@ -216,6 +216,7 @@ govet:
 	  k8s.io/kops/channels/... \
 	  k8s.io/kops/examples/... \
 	  k8s.io/kops/federation/... \
+	  k8s.io/kops/nodeup/... \
 	  k8s.io/kops/util/... \
 	  k8s.io/kops/upup/... \
 	  k8s.io/kops/protokube/... \
@@ -250,7 +251,7 @@ examples:
 
 apimachinery:
 	#go install ./cmd/libs/go2idl/conversion-gen
-	~/k8s/bin/conversion-gen  --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha1 --v=8  --output-file-base=zz_generated.conversion
+	${GOPATH}/bin/conversion-gen --skip-unsafe=true --input-dirs k8s.io/kops/pkg/apis/kops/v1alpha1 --v=8  --output-file-base=zz_generated.conversion
 	#go install github.com/ugorji/go/codec/codecgen
 	# codecgen works only if invoked from directory where the file is located.
 	#cd pkg/apis/kops/v1alpha2/ && ~/k8s/bin/codecgen -d 1234 -o types.generated.go instancegroup.go cluster.go federation.go
