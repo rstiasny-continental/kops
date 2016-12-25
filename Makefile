@@ -81,6 +81,17 @@ test:
 	go test k8s.io/kops/dns-controller/pkg/... -args -v=1 -logtostderr
 	go test k8s.io/kops/cmd/... -args -v=1 -logtostderr
 
+crossbuild-nodeup:
+	mkdir -p .build/dist/
+	#GOOS=darwin GOARCH=amd64 go build -a ${EXTRA_BUILDFLAGS} -o .build/dist/darwin/amd64/nodeup -ldflags "${EXTRA_LDFLAGS} -X main.BuildVersion=${VERSION}" k8s.io/kops/cmd/nodeup
+	GOOS=linux GOARCH=amd64 go build -a ${EXTRA_BUILDFLAGS} -o .build/dist/linux/amd64/nodeup -ldflags "${EXTRA_LDFLAGS} -X main.BuildVersion=${VERSION}" k8s.io/kops/cmd/nodeup
+	#GOOS=windows GOARCH=amd64 go build -o .build/dist/windows/amd64/kops -ldflags "-X main.BuildVersion=${VERSION}" -v k8s.io/kops/cmd/kops/...
+
+crossbuild-nodeup-in-docker:
+	docker pull golang:${GOVERSION} # Keep golang image up to date
+	docker run --name=nodeup-build-${UNIQUE} -e STATIC_BUILD=yes -e VERSION=${VERSION} -v ${MAKEDIR}:/go/src/k8s.io/kops golang:${GOVERSION} make -f /go/src/k8s.io/kops/Makefile crossbuild-nodeup
+	docker cp nodeup-build-${UNIQUE}:/go/.build .
+
 crossbuild:
 	mkdir -p .build/dist/
 	GOOS=darwin GOARCH=amd64 go build -a ${EXTRA_BUILDFLAGS} -o .build/dist/darwin/amd64/kops -ldflags "${EXTRA_LDFLAGS} -X main.BuildVersion=${VERSION}" k8s.io/kops/cmd/kops
@@ -124,9 +135,9 @@ gcs-publish-ci: gcs-upload
 gen-cli-docs:
 	@kops genhelpdocs --out docs/cli
 
-# Assumes running on linux for speed (todo: crossbuild on OSX?)
-push: nodeup-gocode
-	scp -C ${GOPATH_1ST}/bin/nodeup  ${TARGET}:/tmp/
+# Will always push a linux-based build up to the server
+push: crossbuild-nodeup
+	scp -C .build/dist/linux/amd64/nodeup  ${TARGET}:/tmp/
 
 push-gce-dry: push
 	ssh ${TARGET} sudo SKIP_PACKAGE_UPDATE=1 /tmp/nodeup --conf=metadata://gce/config --dryrun --v=8
